@@ -1,0 +1,10 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Director Dashboard</h2>
+<ul>
+  <li>Today Fee Collected: {{ kpis.today_fee }}</li>
+  <li>Month Fee: {{ kpis.month_fee }}</li>
+  <li>Month Expenses: {{ kpis.month_expense }}</li>
+  <li>Attendance Rate: {{ kpis.attendance_rate }}</li>
+</ul>
+{% endblock %}

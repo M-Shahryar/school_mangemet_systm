@@ -1,0 +1,9 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Admin Dashboard</h2>
+<ul>
+  <li>Unpaid Students: {{ kpis.unpaid_students }}</li>
+  <li>Low Stock Items: {{ kpis.low_stock }}</li>
+  <li>Attendance Marked: {{ kpis.attendance_marked }}</li>
+</ul>
+{% endblock %}
