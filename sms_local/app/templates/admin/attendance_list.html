@@ -1,0 +1,23 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Attendance — Daily View</h2>
+<form method="get" action="/admin/attendance/list">
+  <label>Date</label>
+  <input type="date" name="date" value="{{ date_val }}" required>
+  <button type="submit">Show</button>
+</form>
+
+{% if rows is not none %}
+  <table border="1" cellpadding="6" cellspacing="0" style="margin-top:14px">
+    <tr><th>#</th><th>GR</th><th>Name</th><th>Code</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ r.student.gr_number }}</td>
+      <td>{{ r.student.first_name }} {{ r.student.last_name or "" }}</td>
+      <td>{{ r.code }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+{% endif %}
+{% endblock %}
