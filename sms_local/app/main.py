@@ -20,4 +20,4 @@ app.include_router(admin_router)
 
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("_layout.html", {"request": request, "title": "Home"})
+    return templates.TemplateResponse("home.html", {"request": request, "title": "Home"})
