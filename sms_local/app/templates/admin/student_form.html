@@ -1,0 +1,48 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>{{ mode }} Student</h2>
+<form method="post">
+  <fieldset style="max-width:560px">
+    {% if mode == "Create" %}
+      <label>GR Number</label><br>
+      <input name="gr_number" required /><br><br>
+    {% endif %}
+    <label>First Name</label><br>
+    <input name="first_name" value="{{ s.first_name if s }}" required /><br><br>
+
+    <label>Last Name</label><br>
+    <input name="last_name" value="{{ s.last_name if s }}" /><br><br>
+
+    <label>DOB (YYYY-MM-DD)</label><br>
+    <input name="dob" value="{{ s.dob if s }}" /><br><br>
+
+    <label>Gender</label><br>
+    <select name="gender">
+      <option value="">--</option>
+      {% for g in ["M","F","O"] %}
+        <option value="{{g}}" {% if s and s.gender==g %}selected{% endif %}>{{g}}</option>
+      {% endfor %}
+    </select><br><br>
+
+    <label>Status</label><br>
+    <select name="status">
+      {% for st in ["ACTIVE","INACTIVE"] %}
+        <option value="{{st}}" {% if s and s.status==st %}selected{% endif %}>{{st}}</option>
+      {% endfor %}
+    </select><br><br>
+
+    <h3>Guardian (optional)</h3>
+    <label>Name</label><br><input name="g_name" /><br><br>
+    <label>Phone</label><br><input name="g_phone" /><br><br>
+    <label>Email</label><br><input name="g_email" /><br><br>
+    <label>Relation</label><br><input name="g_relation" /><br><br>
+
+    <h3>Enrollment (optional)</h3>
+    <label>Academic Year (e.g., 2025-26)</label><br><input name="en_year" /><br><br>
+    <label>Class</label><br><input name="en_class" /><br><br>
+    <label>Section</label><br><input name="en_section" /><br><br>
+
+    <button type="submit">{{ mode }}</button>
+  </fieldset>
+</form>
+{% endblock %}
