@@ -15,6 +15,7 @@ from .routers.students import router as students_api_router
 from .routers.attendance import router as attendance_api_router
 from .routers.fees import router as fees_api_router
 
+
 app = FastAPI(title=settings.APP_NAME)
 
 # Ensure DB tables exist on startup (models are imported inside init_db())
