@@ -1,0 +1,15 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Today’s Expenditures — {{ date }}</h2>
+{% if rows and rows|length > 0 %}
+  <table border="1" cellpadding="6" cellspacing="0">
+    <tr><th>Head</th><th>Amount</th><th>Note</th></tr>
+    {% for e in rows %}
+      <tr><td>{{ e.head }}</td><td>{{ '%.2f'|format(e.amount) }}</td><td>{{ e.note or '' }}</td></tr>
+    {% endfor %}
+    <tr><td><b>Total</b></td><td colspan="2"><b>{{ total }}</b></td></tr>
+  </table>
+{% else %}
+  <p>No expenditures recorded today.</p>
+{% endif %}
+{% endblock %}

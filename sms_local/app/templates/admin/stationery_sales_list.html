@@ -1,0 +1,18 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Stationery Sales</h2>
+<p><a href="/admin/inventory/stationery/sales/new">+ Add Sale</a></p>
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr><th>Date</th><th>Item</th><th>Qty</th><th>Amount</th><th>Note</th><th>Actions</th></tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.sale_date }}</td><td>{{ r.item }}</td><td>{{ r.qty }}</td><td>{{ '%.2f'|format(r.amount) }}</td><td>{{ r.note or '' }}</td>
+    <td>
+      <form method="post" action="/admin/inventory/stationery/sales/{{ r.id }}/delete" onsubmit="return confirm('Delete?')" style="display:inline">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

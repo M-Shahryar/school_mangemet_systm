@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Add Expenditure</h2>
+<form method="post" action="/admin/expenses/new">
+  <label>Date</label><br><input type="date" name="spent_on" required><br><br>
+  <label>Head</label><br><input name="head" placeholder="Utilities / Rent / Salaries" required><br><br>
+  <label>Amount</label><br><input type="number" step="0.01" name="amount" required><br><br>
+  <label>Note</label><br><input name="note"><br><br>
+  <button type="submit">Save</button>
+</form>
+{% endblock %}
