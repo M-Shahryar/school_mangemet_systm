@@ -17,3 +17,4 @@ def _role_from_request(request):
 
 # Make available inside Jinja: {{ current_role(request) }}
 templates.env.globals["current_role"] = _role_from_request
+

@@ -14,6 +14,8 @@ from ..models.enrollment import Enrollment
 from ..models.attendance import Attendance
 from ..models.fees import Challan, Payment
 from .base import templates
+from ..models.expenditure import Expenditure
+from ..models.stationery import StationerySale
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -501,3 +503,37 @@ def inv_sales_delete(rid: str, db: Session = Depends(get_db), role=Depends(requi
     if r:
         db.delete(r); db.commit()
     return RedirectResponse(url="/admin/inventory/sales", status_code=302)
+
+
+# -------------------- Expenditures (CRUD lite) --------------------
+
+@router.get("/expenses", response_class=HTMLResponse)
+def expenses_list(request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
+    rows = db.query(Expenditure).order_by(Expenditure.spent_on.desc()).all()
+    return templates.TemplateResponse("admin/expenditures_list.html", {"request": request, "rows": rows})
+
+@router.get("/expenses/new", response_class=HTMLResponse)
+def expenses_new(request, role=Depends(require_any("ADMIN","DIRECTOR"))):
+    return templates.TemplateResponse("admin/expenditure_form.html", {"request": request})
+
+@router.post("/expenses/new")
+def expenses_create(
+    spent_on: str = Form(...),
+    head: str = Form(...),
+    amount: float = Form(...),
+    note: str | None = Form(None),
+    db: Session = Depends(get_db),
+    role=Depends(require_any("ADMIN","DIRECTOR")),
+):
+    from datetime import date as _d
+    e = Expenditure(spent_on=_d.fromisoformat(spent_on), head=head, amount=amount, note=note or None)
+    db.add(e); db.commit()
+    return RedirectResponse(url="/admin/expenses", status_code=302)
+
+@router.post("/expenses/{eid}/delete")
+def expenses_delete(eid: str, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
+    e = db.get(Expenditure, eid)
+    if e:
+        db.delete(e); db.commit()
+    return RedirectResponse(url="/admin/expenses", status_code=302)
+
