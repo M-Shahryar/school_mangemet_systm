@@ -1,0 +1,12 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Add Stationery Item</h2>
+<form method="post" action="/admin/inventory/stationery/items/new">
+  <label>Name</label><br><input name="name" required><br><br>
+  <label>SKU</label><br><input name="sku"><br><br>
+  <label>Unit</label><br><input name="unit" value="pcs"><br><br>
+  <label>Opening Qty</label><br><input type="number" step="0.01" name="opening_qty" value="0"><br><br>
+  <label>Sale Price (optional)</label><br><input type="number" step="0.01" name="sale_price"><br><br>
+  <button type="submit">Save</button>
+</form>
+{% endblock %}

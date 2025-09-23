@@ -1,0 +1,38 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Attendance — Mark</h2>
+
+<form method="get" action="/admin/attendance">
+  <label>Date</label>
+  <input type="date" name="date" value="{{ date_val }}" required>
+  <label style="margin-left:12px">Class</label>
+  <input name="klass" value="{{ klass or '' }}" placeholder="Grade 6" required>
+  <label style="margin-left:12px">Section</label>
+  <input name="section" value="{{ section or '' }}" placeholder="A" required>
+  <button type="submit" style="margin-left:12px">Load</button>
+</form>
+
+{% if students is not none %}
+  <form method="post" action="/admin/attendance/save">
+    <input type="hidden" name="date" value="{{ date_val }}">
+    <input type="hidden" name="klass" value="{{ klass }}">
+    <input type="hidden" name="section" value="{{ section }}">
+    <table border="1" cellpadding="6" cellspacing="0" style="margin-top:14px">
+      <tr><th>#</th><th>GR</th><th>Name</th><th>P</th><th>A</th><th>L</th><th>E</th></tr>
+      {% for item in students %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.student.gr_number }}</td>
+        <td>{{ item.student.first_name }} {{ item.student.last_name or "" }}</td>
+        {% set sel = item.codes.get(item.student.id, "P") %}
+        <td><input type="radio" name="code_{{ item.student.id }}" value="P" {% if sel=="P" %}checked{% endif %}></td>
+        <td><input type="radio" name="code_{{ item.student.id }}" value="A" {% if sel=="A" %}checked{% endif %}></td>
+        <td><input type="radio" name="code_{{ item.student.id }}" value="L" {% if sel=="L" %}checked{% endif %}></td>
+        <td><input type="radio" name="code_{{ item.student.id }}" value="E" {% if sel=="E" %}checked{% endif %}></td>
+      </tr>
+      {% endfor %}
+    </table>
+    <button type="submit" style="margin-top:12px">Save Attendance</button>
+  </form>
+{% endif %}
+{% endblock %}

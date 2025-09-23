@@ -1,0 +1,52 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Director Dashboard</h2>
+
+<form method="get" action="/director/dashboard" style="margin:10px 0 16px">
+  <label>Month (first day):</label>
+  <input type="date" name="month" value="{{ month }}" />
+  <label style="margin-left:12px">Year:</label>
+  <input type="number" name="year" value="{{ year }}" min="2000" max="2100" />
+  <button type="submit">Update</button>
+</form>
+
+<h3>Headlines</h3>
+<div style="display:grid;grid-template-columns:repeat(4, minmax(180px,1fr));gap:14px;margin-bottom:14px">
+  <div class="card"><div class="label">Students</div><div class="val">{{ heads.students }}</div></div>
+  <div class="card"><div class="label">Classes</div><div class="val">{{ heads.classes }}</div></div>
+  <div class="card"><div class="label">Attendance (Today)</div><div class="val">{{ m.attendance_today }}</div></div>
+  <div class="card"><div class="label">Unpaid ({{ month }})</div><div class="val">{{ m.unpaid }}</div></div>
+</div>
+
+<h3>Monthly ({{ month }})</h3>
+<div style="display:grid;grid-template-columns:repeat(4, minmax(220px,1fr));gap:14px;margin-bottom:14px">
+  <div class="card"><div class="label">Challans</div><div class="val">{{ m.challans }}</div></div>
+  <div class="card"><div class="label">Net Billed</div><div class="val">{{ m.net_billed }}</div></div>
+  <div class="card"><div class="label">Collected (Fees)</div><div class="val">{{ m.collected }}</div></div>
+  <div class="card"><div class="label">Pending (Fees)</div><div class="val">{{ m.pending }}</div></div>
+  <div class="card"><div class="label">Stationery Income</div><div class="val">{{ m.stationery_income }}</div></div>
+  <div class="card"><div class="label">Expenditures</div><div class="val">{{ m.expenditure }}</div></div>
+  <div class="card"><div class="label">Profit/Loss</div><div class="val">{{ m.profit }}</div></div>
+</div>
+
+<h3>Yearly ({{ year }})</h3>
+<div style="display:grid;grid-template-columns:repeat(4, minmax(220px,1fr));gap:14px">
+  <div class="card"><div class="label">Challans</div><div class="val">{{ y.challans }}</div></div>
+  <div class="card"><div class="label">Net Billed</div><div class="val">{{ y.net_billed }}</div></div>
+  <div class="card"><div class="label">Collected (Fees)</div><div class="val">{{ y.collected }}</div></div>
+  <div class="card"><div class="label">Pending (Fees)</div><div class="val">{{ y.pending }}</div></div>
+  <div class="card"><div class="label">Stationery Income</div><div class="val">{{ y.stationery_income }}</div></div>
+  <div class="card"><div class="label">Expenditures</div><div class="val">{{ y.expenditure }}</div></div>
+  <div class="card"><div class="label">Profit/Loss</div><div class="val">{{ y.profit }}</div></div>
+</div>
+
+<p style="margin-top:16px">
+  <a href="/director/expenditures/today">View today’s expenditures list →</a>
+</p>
+
+<style>
+.card{border:1px solid #ddd;border-radius:8px;padding:12px}
+.label{font-size:12px;color:#666}
+.val{font-size:22px}
+</style>
+{% endblock %}

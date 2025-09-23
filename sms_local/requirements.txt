@@ -1,0 +1,15 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.8.2
+pydantic-settings==2.4.0
+SQLAlchemy==2.0.34
+alembic==1.13.2
+psycopg2-binary==2.9.9
+python-dotenv==1.0.1
+passlib[bcrypt]==1.7.4
+Jinja2==3.1.4
+python-multipart==0.0.9
+reportlab==4.2.5
+pandas==2.2.2
+bcrypt==4.0.1
+python-jose==3.5.0

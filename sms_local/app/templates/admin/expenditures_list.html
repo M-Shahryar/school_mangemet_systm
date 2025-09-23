@@ -1,0 +1,29 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Expenditures</h2>
+
+<p><a href="/admin/expenses/new">+ Add Expenditure</a></p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr>
+    <th>Date</th>
+    <th>Head</th>
+    <th>Amount</th>
+    <th>Note</th>
+    <th>Actions</th>
+  </tr>
+  {% for e in rows %}
+  <tr>
+    <td>{{ e.spent_on }}</td>
+    <td>{{ e.head }}</td>
+    <td>{{ '%.2f'|format(e.amount) }}</td>
+    <td>{{ e.note or '' }}</td>
+    <td>
+      <form method="post" action="/admin/expenses/{{ e.id }}/delete" onsubmit="return confirm('Delete?')" style="display:inline">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

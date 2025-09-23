@@ -1,0 +1,21 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Sign in</h2>
+<form method="post" action="/auth/login" style="max-width:380px">
+  <div>
+    <label>Username</label><br>
+    <input name="username" required autofocus />
+  </div>
+  <div style="margin-top:10px">
+    <label>Password</label><br>
+    <input type="password" name="password" required />
+  </div>
+  {% if error %}
+    <p style="color:#b00020;margin-top:10px">{{ error }}</p>
+  {% endif %}
+  <div style="margin-top:14px">
+    <button type="submit">Login</button>
+  </div>
+  <p style="margin-top:10px"><small>Try: <b>director</b> / 1234 or <b>admin</b> / 1234</small></p>
+</form>
+{% endblock %}

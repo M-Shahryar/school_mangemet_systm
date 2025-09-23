@@ -1,0 +1,25 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Students</h2>
+<p><a href="/admin/students/new">+ Add Student</a></p>
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr>
+    <th>GR#</th><th>Name</th><th>DOB</th><th>Gender</th><th>Status</th><th>Actions</th>
+  </tr>
+  {% for s in students %}
+  <tr>
+    <td>{{ s.gr_number }}</td>
+    <td>{{ s.first_name }} {{ s.last_name or "" }}</td>
+    <td>{{ s.dob or "" }}</td>
+    <td>{{ s.gender or "" }}</td>
+    <td>{{ s.status }}</td>
+    <td>
+      <a href="/admin/students/{{ s.id }}/edit">Edit</a> |
+      <form method="post" action="/admin/students/{{ s.id }}/delete" style="display:inline" onsubmit="return confirm('Delete?')">
+        <button type="submit">Delete</button>
+      </form>
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

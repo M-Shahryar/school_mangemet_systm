@@ -1,0 +1,64 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Fees — Create Challan</h2>
+{% if request.query_params.get('error') %}
+  <p style="color:#b00020">{{ request.query_params.get('error') }}</p>
+{% endif %}
+<form method="post" action="/admin/fees/challan">
+  <fieldset style="max-width:540px">
+    <p><b>Single Student:</b> Use <i>either</i> Student ID <i>or</i> GR Number</p>
+    <label>Student ID</label><br>
+    <input name="student_id" placeholder="Paste student id (optional)" /><br><br>
+
+    <label>GR Number</label><br>
+    <input name="gr_number" placeholder="e.g. GR-00123 (optional)" /><br><br>
+
+    <label>Month (YYYY-MM-01)</label><br>
+    <input name="month" type="date" required /><br><br>
+
+    <label>Due Date</label><br>
+    <input name="due_date" type="date" /><br><br>
+
+    <label>Gross</label><br>
+    <input name="gross" type="number" step="0.01" required /><br><br>
+
+    <label>Discount</label><br>
+    <input name="discount" type="number" step="0.01" value="0" /><br><br>
+
+    <label>Note</label><br>
+    <input name="note" /><br><br>
+
+    <button type="submit">Create Challan</button>
+  </fieldset>
+</form>
+
+<hr style="margin:24px 0">
+
+<h2>Fees — Batch Generate (Class & Section)</h2>
+<form method="post" action="/admin/fees/challan/batch">
+  <fieldset style="max-width:540px">
+    <label>Class</label><br>
+    <input name="klass" placeholder="e.g. Grade 6" required /><br><br>
+
+    <label>Section</label><br>
+    <input name="section" placeholder="e.g. A" required /><br><br>
+
+    <label>Month (YYYY-MM-01)</label><br>
+    <input name="month" type="date" required /><br><br>
+
+    <label>Due Date</label><br>
+    <input name="due_date" type="date" /><br><br>
+
+    <label>Gross (applies to all students)</label><br>
+    <input name="gross" type="number" step="0.01" required /><br><br>
+
+    <label>Discount (applies to all students)</label><br>
+    <input name="discount" type="number" step="0.01" value="0" /><br><br>
+
+    <label>Note (optional)</label><br>
+    <input name="note" /><br><br>
+
+    <button type="submit">Generate Challans for Class/Section</button>
+  </fieldset>
+</form>
+{% endblock %}

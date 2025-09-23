@@ -1,0 +1,25 @@
+{% extends "_layout.html" %}
+{% block content %}
+<h2>Stationery Items</h2>
+<p>
+  <a href="/admin/inventory/stationery/items/new">+ Add Item</a> |
+  <a href="/admin/inventory/stationery/stock/in">Stock In</a> |
+  <a href="/admin/inventory/stationery/sales">Sales</a>
+</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr>
+    <th>SKU</th><th>Name</th><th>Unit</th><th>Opening</th><th>Current Stock</th><th>Sale Price</th>
+  </tr>
+  {% for r in rows %}
+  <tr>
+    <td>{{ r.obj.sku or '' }}</td>
+    <td>{{ r.obj.name }}</td>
+    <td>{{ r.obj.unit }}</td>
+    <td>{{ '%.2f'|format(r.obj.opening_qty) }}</td>
+    <td>{{ '%.2f'|format(r.stock) }}</td>
+    <td>{{ r.obj.sale_price is not none and ('%.2f'|format(r.obj.sale_price)) or '' }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
