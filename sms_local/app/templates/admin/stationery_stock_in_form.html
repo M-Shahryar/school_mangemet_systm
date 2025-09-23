@@ -1,14 +1,8 @@
 {% extends "_layout.html" %}
 {% block content %}
-<h2>Add Stationery Sale</h2>
-
-{% if request.query_params.get('error') %}
-  <p style="color:#b00020">{{ request.query_params.get('error') }}</p>
-{% endif %}
-
-<form method="post" action="/admin/inventory/stationery/sales/new">
-  <label>Date</label><br><input type="date" name="sale_date" required><br><br>
-
+<h2>Stock In</h2>
+<form method="post" action="/admin/inventory/stationery/stock/in">
+  <label>Date</label><br><input type="date" name="move_date" required><br><br>
   <label>Item</label><br>
   <select name="item_id" required>
     <option value="">-- select --</option>
@@ -16,14 +10,8 @@
       <option value="{{ it.id }}">{{ it.name }}{% if it.sku %} ({{ it.sku }}){% endif %}</option>
     {% endfor %}
   </select><br><br>
-
   <label>Qty</label><br><input type="number" step="0.01" name="qty" required><br><br>
-
-  <label>Amount (will auto-calc if left blank and item has a sale price)</label><br>
-  <input type="number" step="0.01" name="amount"><br><br>
-
   <label>Note</label><br><input name="note"><br><br>
-
   <button type="submit">Save</button>
 </form>
 {% endblock %}

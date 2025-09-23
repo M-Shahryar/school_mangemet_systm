@@ -2,6 +2,7 @@
 from fastapi import APIRouter, Request, Depends, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import func, case
 from datetime import date as dt_date
 from decimal import Decimal
 
@@ -16,6 +17,8 @@ from ..models.fees import Challan, Payment
 from .base import templates
 from ..models.expenditure import Expenditure
 from ..models.stationery import StationerySale
+from ..models.stationery_item import StationeryItem
+from ..models.stock import StockMove, MoveKind
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -440,7 +443,6 @@ def fees_unpaid_csv(
     return StreamingResponse(iter([buffer.getvalue()]), media_type="text/csv",
                              headers={"Content-Disposition": f'attachment; filename="unpaid_{month}.csv"'})
 
-
 # -------------------- Expenditures (CRUD lite) --------------------
 @router.get("/expenses", response_class=HTMLResponse)
 def expenses_list(request: Request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
@@ -472,68 +474,156 @@ def expenses_delete(eid: str, db: Session = Depends(get_db), role=Depends(requir
         db.delete(e); db.commit()
     return RedirectResponse(url="/admin/expenses", status_code=302)
 
-# -------------------- Inventory Sales (income log) --------------------
-@router.get("/inventory/sales", response_class=HTMLResponse)
-def inv_sales_list(request: Request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
-    rows = db.query(InventorySale).order_by(InventorySale.sale_date.desc()).all()
-    return templates.TemplateResponse("admin/inventory_sales_list.html", {"request": request, "rows": rows})
+# -------------------- Stationery Sales (income log) --------------------
 
-@router.get("/inventory/sales/new", response_class=HTMLResponse)
-def inv_sales_new(request: Request, role=Depends(require_any("ADMIN","DIRECTOR"))):
-    return templates.TemplateResponse("admin/inventory_sale_form.html", {"request": request})
+@router.get("/inventory/stationery/sales/new", response_class=HTMLResponse)
+def stationery_sales_new(request: Request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
+    items = db.query(StationeryItem).order_by(StationeryItem.name.asc()).all()
+    return templates.TemplateResponse("admin/stationery_sale_form.html", {"request": request, "items": items})
 
-@router.post("/inventory/sales/new")
-def inv_sales_create(
+@router.post("/inventory/stationery/sales/new")
+def stationery_sales_create(
     sale_date: str = Form(...),
-    item: str = Form(...),
+    item_id: str = Form(...),
     qty: float = Form(...),
-    amount: float = Form(...),
+    amount: float | None = Form(None),
+    note: str | None = Form(None),
+    db: Session = Depends(get_db),
+    role = Depends(require_any("ADMIN","DIRECTOR")),
+):
+    from datetime import date as _d
+    # check item exists
+    it = db.get(StationeryItem, item_id)
+    if not it:
+        return RedirectResponse(url="/admin/inventory/stationery/sales/new?error=Invalid+item", status_code=302)
+
+    # stock check
+    available = current_stock(db, item_id)
+    if qty > available:
+        return RedirectResponse(url=f"/admin/inventory/stationery/sales/new?error=Insufficient+stock+(available+{available})", status_code=302)
+
+    # compute amount if not provided, use sale_price
+    if amount is None:
+        if it.sale_price is not None:
+            amount = float(it.sale_price) * float(qty)
+        else:
+            amount = 0.0
+
+    # create sale row
+    from ..models.stationery import StationerySale
+    sale = StationerySale(
+        sale_date=_d.fromisoformat(sale_date),
+        item=it.name,
+        qty=qty,
+        amount=amount,
+        note=note or None,
+    )
+    db.add(sale)
+    db.flush()  # so sale.id is available
+
+    # create stock OUT movement linked to sale
+    mv = StockMove(
+        item_id=item_id,
+        move_date=_d.fromisoformat(sale_date),
+        qty=qty,
+        kind="OUT",
+        note=f"Sale: {sale.id}",
+        sale_id=sale.id,
+    )
+    db.add(mv)
+    db.commit()
+    return RedirectResponse(url="/admin/inventory/stationery/sales", status_code=302)
+
+# -------------------- Stocks (CRUD lite) --------------------
+
+def current_stock(db, item_id: str) -> float:
+    # opening + IN - OUT
+    row = (
+        db.query(
+            StationeryItem.opening_qty.label("opening"),
+            func.coalesce(
+                func.sum(
+                    case((StockMove.kind == MoveKind.IN, StockMove.qty), else_=0)
+                ),
+                0
+            ).label("in_qty"),
+            func.coalesce(
+                func.sum(
+                    case((StockMove.kind == MoveKind.OUT, StockMove.qty), else_=0)
+                ),
+                0
+            ).label("out_qty"),
+        )
+        .outerjoin(StockMove, StockMove.item_id == StationeryItem.id)
+        .filter(StationeryItem.id == item_id)
+        .group_by(StationeryItem.opening_qty)
+        .first()
+    )
+    if not row:
+        return 0.0
+    opening, in_qty, out_qty = float(row.opening), float(row.in_qty), float(row.out_qty)
+    return round(opening + in_qty - out_qty, 2)
+
+
+# -------------------- Stationery Items --------------------
+@router.get("/inventory/stationery/items", response_class=HTMLResponse)
+def stn_items_list(request: Request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
+    items = db.query(StationeryItem).order_by(StationeryItem.name.asc()).all()
+    # attach live stock
+    rows = []
+    for it in items:
+        rows.append({"obj": it, "stock": current_stock(db, it.id)})
+    return templates.TemplateResponse("admin/stationery_items_list.html", {"request": request, "rows": rows})
+
+@router.get("/inventory/stationery/items/new", response_class=HTMLResponse)
+def stn_item_new(request: Request, role=Depends(require_any("ADMIN","DIRECTOR"))):
+    return templates.TemplateResponse("admin/stationery_item_form.html", {"request": request})
+
+@router.post("/inventory/stationery/items/new")
+def stn_item_create(
+    name: str = Form(...),
+    sku: str | None = Form(None),
+    unit: str = Form("pcs"),
+    opening_qty: float = Form(0),
+    sale_price: float | None = Form(None),
+    db: Session = Depends(get_db),
+    role=Depends(require_any("ADMIN","DIRECTOR")),
+):
+    it = StationeryItem(
+        name=name.strip(),
+        sku=(sku or None),
+        unit=unit.strip(),
+        opening_qty=opening_qty,
+        sale_price=sale_price,
+    )
+    db.add(it)
+    db.commit()
+    return RedirectResponse(url="/admin/inventory/stationery/items", status_code=302)
+
+# -------------------- Stock IN --------------------
+@router.get("/inventory/stationery/stock/in", response_class=HTMLResponse)
+def stn_stock_in_form(request: Request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
+    items = db.query(StationeryItem).order_by(StationeryItem.name.asc()).all()
+    return templates.TemplateResponse("admin/stationery_stock_in_form.html", {"request": request, "items": items})
+
+@router.post("/inventory/stationery/stock/in")
+def stn_stock_in(
+    item_id: str = Form(...),
+    move_date: str = Form(...),
+    qty: float = Form(...),
     note: str | None = Form(None),
     db: Session = Depends(get_db),
     role=Depends(require_any("ADMIN","DIRECTOR")),
 ):
     from datetime import date as _d
-    r = InventorySale(sale_date=_d.fromisoformat(sale_date), item=item, qty=qty, amount=amount, note=note or None)
-    db.add(r); db.commit()
-    return RedirectResponse(url="/admin/inventory/sales", status_code=302)
-
-@router.post("/inventory/sales/{rid}/delete")
-def inv_sales_delete(rid: str, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
-    r = db.get(InventorySale, rid)
-    if r:
-        db.delete(r); db.commit()
-    return RedirectResponse(url="/admin/inventory/sales", status_code=302)
-
-
-# -------------------- Expenditures (CRUD lite) --------------------
-
-@router.get("/expenses", response_class=HTMLResponse)
-def expenses_list(request, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
-    rows = db.query(Expenditure).order_by(Expenditure.spent_on.desc()).all()
-    return templates.TemplateResponse("admin/expenditures_list.html", {"request": request, "rows": rows})
-
-@router.get("/expenses/new", response_class=HTMLResponse)
-def expenses_new(request, role=Depends(require_any("ADMIN","DIRECTOR"))):
-    return templates.TemplateResponse("admin/expenditure_form.html", {"request": request})
-
-@router.post("/expenses/new")
-def expenses_create(
-    spent_on: str = Form(...),
-    head: str = Form(...),
-    amount: float = Form(...),
-    note: str | None = Form(None),
-    db: Session = Depends(get_db),
-    role=Depends(require_any("ADMIN","DIRECTOR")),
-):
-    from datetime import date as _d
-    e = Expenditure(spent_on=_d.fromisoformat(spent_on), head=head, amount=amount, note=note or None)
-    db.add(e); db.commit()
-    return RedirectResponse(url="/admin/expenses", status_code=302)
-
-@router.post("/expenses/{eid}/delete")
-def expenses_delete(eid: str, db: Session = Depends(get_db), role=Depends(require_any("ADMIN","DIRECTOR"))):
-    e = db.get(Expenditure, eid)
-    if e:
-        db.delete(e); db.commit()
-    return RedirectResponse(url="/admin/expenses", status_code=302)
+    mv = StockMove(
+        item_id=item_id,
+        move_date=_d.fromisoformat(move_date),
+        qty=qty,
+        kind="IN",
+        note=note or None,
+    )
+    db.add(mv)
+    db.commit()
+    return RedirectResponse(url="/admin/inventory/stationery/items", status_code=302)
 

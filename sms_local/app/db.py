@@ -38,7 +38,9 @@ def init_db():
         attendance,
         fees,
         expenditure,
-        stationery,   # <- stationery (replacing old inventory)
+        stationery,
+        stationery_item,
+        stock  # <- stationery (replacing old inventory)
     )  # noqa: F401
 
     Base.metadata.create_all(bind=engine)

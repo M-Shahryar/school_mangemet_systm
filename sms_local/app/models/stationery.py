@@ -12,5 +12,5 @@ class StationerySale(Base):
     sale_date: Mapped[date] = mapped_column(Date, index=True)
     item: Mapped[str] = mapped_column(String(128))
     qty: Mapped[float] = mapped_column(Numeric(10,2))
-    amount: Mapped[float] = mapped_column(Numeric(12,2))
+    amount: Mapped[float] = mapped_column(Numeric(12,2))  # total sale amount (PKR)
     note: Mapped[str | None] = mapped_column(String, nullable=True)
